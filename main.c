@@ -1,6 +1,5 @@
 #include <raylib.h>
 #include <stdio.h>
-#include <sys/types.h>
 
 const int SCREENX = 1920;
 const int SCREENY = 1080;
