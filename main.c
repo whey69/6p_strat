@@ -1,6 +1,9 @@
 #include <raylib.h>
 #include <stdio.h>
 
+#define RAYGUI_IMPLEMENTATION
+#include "raygui.h"
+
 const int SCREENX = 1920;
 const int SCREENY = 1080;
 
@@ -65,6 +68,22 @@ void draw() {
                     startY + 1 + ((SIZE + GAP) * k),
                     SIZE, SIZE,
                     getTeamColor(i, k));
+    }
+  }
+
+  if (GuiButton((Rectangle){100, 100, 120, 30}, "hello raygui")) {
+    if (turn == 0) {
+      turn = 1;
+    } else if (turn == 1) {
+      turn = 2;
+    } else if (turn == 2) {
+      turn = 5;
+    } else if (turn == 5) {
+      turn = 4;
+    } else if (turn == 4) {
+      turn = 3;
+    } else if (turn == 3) {
+      turn = 0;
     }
   }
 
