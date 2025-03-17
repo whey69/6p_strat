@@ -18,7 +18,8 @@ const Color teams[] = {DARKGREEN, RED, PURPLE, YELLOW, DARKBLUE, {0xff, 0x7d, 0x
 
 typedef struct {
   int pos[2];
-  int teams;
+  int team;
+  int health;
 } Cell;
 Cell field[GRIDX][GRIDY];
 
@@ -65,7 +66,40 @@ Color getTeamColor(int i, int k) {
   }
 }
 
+#define BUTTONWIDTH 150
+#define BUTTONHEIGHT 50
+#define BUTTONGAPX 15
+#define BUTTONGAPY 15
+
 int turn = 0;
+Font font;
+void buttons() {
+  Rectangle button1;
+  Rectangle button2;
+  Rectangle button3;
+  if (turn == _GREEN) {
+    button1 = (Rectangle){SCREENX / 2 - BUTTONWIDTH - BUTTONGAPX, BUTTONGAPY, BUTTONWIDTH, BUTTONHEIGHT};
+    button2 = (Rectangle){SCREENX / 2 - BUTTONWIDTH - BUTTONGAPX, BUTTONGAPY + button1.y + BUTTONHEIGHT, BUTTONWIDTH, BUTTONHEIGHT};
+    button3 = (Rectangle){SCREENX / 2 - BUTTONWIDTH - BUTTONGAPX, BUTTONGAPY + button2.y + BUTTONHEIGHT, BUTTONWIDTH, BUTTONHEIGHT};
+  } else if (turn == _RED) {
+    button1 = (Rectangle){SCREENX / 2 + BUTTONGAPX, BUTTONGAPY, BUTTONWIDTH, BUTTONHEIGHT};
+    button2 = (Rectangle){SCREENX / 2 + BUTTONGAPX, BUTTONGAPY + button1.y + BUTTONHEIGHT, BUTTONWIDTH, BUTTONHEIGHT};
+    button3 = (Rectangle){SCREENX / 2 + BUTTONGAPX, BUTTONGAPY + button2.y + BUTTONHEIGHT, BUTTONWIDTH, BUTTONHEIGHT};
+  } else if (turn == _DARKBLUE) {
+    button3 = (Rectangle){SCREENX / 2 + BUTTONGAPX, SCREENY - BUTTONGAPY - BUTTONHEIGHT, BUTTONWIDTH, BUTTONHEIGHT};
+    button2 = (Rectangle){SCREENX / 2 + BUTTONGAPX, button3.y - BUTTONGAPY - BUTTONHEIGHT, BUTTONWIDTH, BUTTONHEIGHT};
+    button1 = (Rectangle){SCREENX / 2 + BUTTONGAPX, button2.y - BUTTONGAPY - BUTTONHEIGHT, BUTTONWIDTH, BUTTONHEIGHT};
+  } else if (turn == _YELLOW) {
+    button3 = (Rectangle){SCREENX / 2 - BUTTONWIDTH - BUTTONGAPX, SCREENY - BUTTONGAPY - BUTTONHEIGHT, BUTTONWIDTH, BUTTONHEIGHT};
+    button2 = (Rectangle){SCREENX / 2 - BUTTONWIDTH - BUTTONGAPX, button3.y - BUTTONGAPY - BUTTONHEIGHT, BUTTONWIDTH, BUTTONHEIGHT};
+    button1 = (Rectangle){SCREENX / 2 - BUTTONWIDTH - BUTTONGAPX, button2.y - BUTTONGAPY - BUTTONHEIGHT, BUTTONWIDTH, BUTTONHEIGHT};
+  } 
+  // TODO: translate
+  GuiButton(button1, u8"magic cube");
+  GuiButton(button2, u8"multiply by 2");
+  GuiButton(button3, u8"release balls");
+}
+
 void processFrame() {
   /// input handling
   if (IsKeyPressed(KEY_Q)) {
@@ -116,12 +150,18 @@ void processFrame() {
     }
   }
 
+  buttons();
+
   EndDrawing();
 }
 
 int main() {
   InitWindow(SCREENX, SCREENY, "window");
   ToggleFullscreen();
+
+  // font = LoadFontEx("../assets/font.ttf", 24, NULL, 0);
+  // SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR);
+  // GuiSetFont(font);
 
   SetTargetFPS(60);
 
