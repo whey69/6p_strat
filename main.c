@@ -45,8 +45,7 @@ Color brighten(Color color, float factor) {
                  (unsigned char)(color.b + (255 - color.b) * factor), color.a};
 }
 
-#define YELLOW                                                                 \
-  (Color) { 0xff, 0xdb, 0x58, 0xff }
+#define YELLOW (Color) { 0xff, 0xdb, 0x58, 0xff } // NOLINT
 const Color BACKGROUND = BLACK;
 const Color teams[] = {DARKGREEN, RED,      PURPLE,
                        YELLOW,    DARKBLUE, {0xff, 0x7d, 0x31, 0xff}};
@@ -94,22 +93,22 @@ void processBullet(Bullet *bullet) {
   // printf("pos: %d, %d; vel: %d, %d\n", bullet->pos[0], bullet->pos[1],
   // bullet->vel[0], bullet->vel[1]);
 
-  if (bullet->pos[0] < startX) {
+  if (bullet->pos[0] < startX) { // NOLINT
     // printf("1\n");
-    bullet->pos[0] = startX;
+    bullet->pos[0] = startX; // NOLINT
     bullet->vel[0] *= -1;
-  } else if (bullet->pos[0] + BULLETSIZE * 2 > startX + rectSizeX) {
+  } else if (bullet->pos[0] + BULLETSIZE * 2 > startX + rectSizeX) { // NOLINT
     // printf("2\n");
-    bullet->pos[0] = startX + rectSizeX - (BULLETSIZE * 2);
+    bullet->pos[0] = startX + rectSizeX - (BULLETSIZE * 2); // NOLINT
     bullet->vel[0] *= -1;
   }
-  if (bullet->pos[1] < startY) {
+  if (bullet->pos[1] < startY) { // NOLINT
     // printf("3\n");
-    bullet->pos[1] = startY;
+    bullet->pos[1] = startY; // NOLINT
     bullet->vel[1] *= -1;
-  } else if (bullet->pos[1] + BULLETSIZE * 2 > startY + rectSizeY) {
+  } else if (bullet->pos[1] + BULLETSIZE * 2 > startY + rectSizeY) { // NOLINT
     // printf("4\n");
-    bullet->pos[1] = startY + rectSizeY - (BULLETSIZE * 2);
+    bullet->pos[1] = startY + rectSizeY - (BULLETSIZE * 2); // NOLINT
     bullet->vel[1] *= -1;
   }
   // fflush(stdout);
@@ -463,19 +462,19 @@ void processFrame() {
   // DrawText(TextFormat("%d", onFieldBulletsSize), 10, 10, 24, RAYWHITE);
 
   DrawRectanglePro(
-      (Rectangle){startX + (SIZE / 2), startY + (SIZE / 2), SIZE * 2, 20},
+      (Rectangle){startX + (SIZE / 2), startY + (SIZE / 2), SIZE * 2, 20}, // NOLINT
       (Vector2){10, 10}, greenAngle, brighten(GREEN, 0.4));
   greenAngle = sin(GetTime()) * 45 + 45;
-  DrawRectanglePro((Rectangle){startX + rectSizeX - (SIZE / 2),
-                               startY + (SIZE / 2), SIZE * 2, 20},
+  DrawRectanglePro((Rectangle){startX + rectSizeX - (SIZE / 2), // NOLINT
+                               startY + (SIZE / 2), SIZE * 2, 20}, // NOLINT
                    (Vector2){10, 10}, redAngle, brighten(RED, 0.4));
   redAngle = sin(GetTime()) * 45 + 135;
-  DrawRectanglePro((Rectangle){startX + rectSizeX - (SIZE / 2),
-                               startY + rectSizeY - (SIZE / 2), SIZE * 2, 20},
+  DrawRectanglePro((Rectangle){startX + rectSizeX - (SIZE / 2), // NOLINT
+                               startY + rectSizeY - (SIZE / 2), SIZE * 2, 20}, // NOLINT
                    (Vector2){10, 10}, blueAngle, brighten(BLUE, 0.4));
   blueAngle = sin(GetTime()) * 45 - 135;
-  DrawRectanglePro((Rectangle){startX + (SIZE / 2),
-                               startY + rectSizeY - (SIZE / 2), SIZE * 2, 20},
+  DrawRectanglePro((Rectangle){startX + (SIZE / 2), // NOLINT
+                               startY + rectSizeY - (SIZE / 2), SIZE * 2, 20}, // NOLINT
                    (Vector2){10, 10}, yellowAngle, brighten(YELLOW, 0.8));
   yellowAngle = sin(GetTime()) * 45 - 45;
 
