@@ -1,5 +1,6 @@
 #include <math.h>
 #include <raylib.h>
+#include <stdio.h>
 
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
@@ -45,7 +46,8 @@ Color brighten(Color color, float factor) {
                  (unsigned char)(color.b + (255 - color.b) * factor), color.a};
 }
 
-#define YELLOW (Color) { 0xff, 0xdb, 0x58, 0xff } // NOLINT
+#define YELLOW                                                                 \
+  (Color) { 0xff, 0xdb, 0x58, 0xff } // NOLINT
 const Color BACKGROUND = BLACK;
 const Color teams[] = {DARKGREEN, RED,      PURPLE,
                        YELLOW,    DARKBLUE, {0xff, 0x7d, 0x31, 0xff}};
@@ -146,7 +148,7 @@ void launchBullet(int pos[2], float vel[2], int team) {
   }
 }
 
-enum Teams { _GREEN, _RED, _PURPLE, _YELLOW, _DARKBLUE, _DARKORANGE };
+enum Teams { _GREEN, _RED, _PURPLE, _YELLOW, _BLUE, _DARKORANGE };
 
 Color getTeamColor(int i, int k) {
   if (k < GRIDY / 2) {
@@ -190,17 +192,21 @@ int getTeam(int i, int k) {
 
 int greenAngle = 0;
 int greenQueue = 0;
+bool greenGameOver;
 int redAngle = 0;
 int redQueue = 0;
+bool redGameOver;
 int blueAngle = 0;
 int blueQueue = 0;
+bool blueGameOver;
 int yellowAngle = 0;
 int yellowQueue = 0;
+bool yellowGameOver;
 
-int turn = 0;
-void nextTurn(char action) {
-  if (turn == _GREEN) {
-    turn = _RED;
+// int turn = 0;
+void act(char action, int who) {
+  if (who == _GREEN) {
+    // who = _RED;
     if (action == 'm' && greenBulletsSize < 1024) {
       if (greenBulletsSize != 1) {
         greenBulletsSize *= BULLETMULTIPLYER;
@@ -215,8 +221,8 @@ void nextTurn(char action) {
       greenQueue += greenBulletsSize;
       greenBulletsSize = 1;
     }
-  } else if (turn == _RED) {
-    turn = _DARKBLUE;
+  } else if (who == _RED) {
+    // who = _DARKBLUE;
     if (action == 'm' && redBulletsSize < 1024) {
       if (redBulletsSize != 1) {
         redBulletsSize *= BULLETMULTIPLYER;
@@ -230,8 +236,8 @@ void nextTurn(char action) {
       redQueue += redBulletsSize;
       redBulletsSize = 1;
     }
-  } else if (turn == _DARKBLUE) {
-    turn = _YELLOW;
+  } else if (who == _BLUE) {
+    // who = _YELLOW;
     if (action == 'm' && blueBulletsSize < 1024) {
       if (blueBulletsSize != 1) {
         blueBulletsSize *= BULLETMULTIPLYER;
@@ -246,7 +252,7 @@ void nextTurn(char action) {
       blueBulletsSize = 1;
     }
   } else {
-    turn = _GREEN;
+    // who = _GREEN;
     if (action == 'm' && yellowBulletsSize < 1024) {
       if (yellowBulletsSize != 1) {
         yellowBulletsSize *= BULLETMULTIPLYER;
@@ -264,11 +270,26 @@ void nextTurn(char action) {
 }
 
 Font font;
+
+#define CUBESTRING u8"magic cube"
+#define MULTIPLYSTRING u8"multiply"
+#define RELEASESTRING u8"release"
+#define GAMEOVERSTRING u8"GAME OVER"
+#define STOREDSTRING u8"stored: %d"
+
+// Q, W, E, I, O, P, Z, X, C, COMMA, PERIOD, SLASH
+#define AMOUNTOFLETTERS 12
+Texture2D letters[AMOUNTOFLETTERS];
+
+int delayGreen;
+int delayRed;
+int delayBlue;
+int delayYellow;
 void buttons() {
   Rectangle button1;
   Rectangle button2;
   Rectangle button3;
-  if (turn == _GREEN) {
+  if (!greenGameOver) {
     button1 = (Rectangle){(float)SCREENX / 2 - BUTTONWIDTH - BUTTONGAPX,
                           BUTTONGAPY, BUTTONWIDTH, BUTTONHEIGHT};
     button2 = (Rectangle){(float)SCREENX / 2 - BUTTONWIDTH - BUTTONGAPX,
@@ -277,7 +298,28 @@ void buttons() {
     button3 = (Rectangle){(float)SCREENX / 2 - BUTTONWIDTH - BUTTONGAPX,
                           BUTTONGAPY + button2.y + BUTTONHEIGHT, BUTTONWIDTH,
                           BUTTONHEIGHT};
-  } else if (turn == _RED) {
+    DrawTexture(letters[0], button1.x - BUTTONHEIGHT - BUTTONGAPX, button1.y,
+                WHITE);
+    DrawTexture(letters[1], button2.x - BUTTONHEIGHT - BUTTONGAPX, button2.y,
+                WHITE);
+    DrawTexture(letters[2], button3.x - BUTTONHEIGHT - BUTTONGAPX, button3.y,
+                WHITE);
+    if (GuiButton(button1, CUBESTRING) || IsKeyPressed(KEY_Q)) {
+      act('c', _GREEN);
+    }
+    if (greenBulletsSize > 1023) {
+      GuiDisable();
+    }
+    if (GuiButton(button2, MULTIPLYSTRING) ||
+        (greenBulletsSize < 1023 && IsKeyPressed(KEY_W))) {
+      act('m', _GREEN);
+    }
+    GuiEnable();
+    if (GuiButton(button3, RELEASESTRING) || IsKeyPressed(KEY_E)) {
+      act('r', _GREEN);
+    }
+  }
+  if (!redGameOver) {
     button1 = (Rectangle){(float)SCREENX / 2 + BUTTONGAPX, BUTTONGAPY,
                           BUTTONWIDTH, BUTTONHEIGHT};
     button2 = (Rectangle){(float)SCREENX / 2 + BUTTONGAPX,
@@ -286,7 +328,28 @@ void buttons() {
     button3 = (Rectangle){(float)SCREENX / 2 + BUTTONGAPX,
                           BUTTONGAPY + button2.y + BUTTONHEIGHT, BUTTONWIDTH,
                           BUTTONHEIGHT};
-  } else if (turn == _DARKBLUE) {
+    DrawTexture(letters[3], button1.x + BUTTONWIDTH + BUTTONGAPX, button1.y,
+                WHITE);
+    DrawTexture(letters[4], button2.x + BUTTONWIDTH + BUTTONGAPX, button2.y,
+                WHITE);
+    DrawTexture(letters[5], button3.x + BUTTONWIDTH + BUTTONGAPX, button3.y,
+                WHITE);
+    if (GuiButton(button1, CUBESTRING) || IsKeyPressed(KEY_I)) {
+      act('c', _RED);
+    }
+    if (redBulletsSize > 1023) {
+      GuiDisable();
+    }
+    if (GuiButton(button2, MULTIPLYSTRING) ||
+        (redBulletsSize < 1023 && IsKeyPressed(KEY_O))) {
+      act('m', _RED);
+    }
+    GuiEnable();
+    if (GuiButton(button3, RELEASESTRING) || IsKeyPressed(KEY_P)) {
+      act('r', _RED);
+    }
+  }
+  if (!blueGameOver) {
     button3 = (Rectangle){(float)SCREENX / 2 + BUTTONGAPX,
                           SCREENY - BUTTONGAPY - BUTTONHEIGHT, BUTTONWIDTH,
                           BUTTONHEIGHT};
@@ -296,7 +359,28 @@ void buttons() {
     button1 = (Rectangle){(float)SCREENX / 2 + BUTTONGAPX,
                           button2.y - BUTTONGAPY - BUTTONHEIGHT, BUTTONWIDTH,
                           BUTTONHEIGHT};
-  } else if (turn == _YELLOW) {
+    DrawTexture(letters[9], button1.x + BUTTONWIDTH + BUTTONGAPX, button1.y,
+                WHITE);
+    DrawTexture(letters[10], button2.x + BUTTONWIDTH + BUTTONGAPX, button2.y,
+                WHITE);
+    DrawTexture(letters[11], button3.x + BUTTONWIDTH + BUTTONGAPX, button3.y,
+                WHITE);
+    if (GuiButton(button1, CUBESTRING) || IsKeyPressed(KEY_COMMA)) {
+      act('c', _BLUE);
+    }
+    if (blueBulletsSize > 1023) {
+      GuiDisable();
+    }
+    if (GuiButton(button2, MULTIPLYSTRING) ||
+        (blueBulletsSize < 1023 && IsKeyPressed(KEY_PERIOD))) {
+      act('m', _BLUE);
+    }
+    GuiEnable();
+    if (GuiButton(button3, RELEASESTRING) || IsKeyPressed(KEY_SLASH)) {
+      act('r', _BLUE);
+    }
+  }
+  if (!yellowGameOver) {
     button3 = (Rectangle){(float)SCREENX / 2 - BUTTONWIDTH - BUTTONGAPX,
                           SCREENY - BUTTONGAPY - BUTTONHEIGHT, BUTTONWIDTH,
                           BUTTONHEIGHT};
@@ -306,24 +390,26 @@ void buttons() {
     button1 = (Rectangle){(float)SCREENX / 2 - BUTTONWIDTH - BUTTONGAPX,
                           button2.y - BUTTONGAPY - BUTTONHEIGHT, BUTTONWIDTH,
                           BUTTONHEIGHT};
-  }
-
-  // TODO: translate
-  if (GuiButton(button1, u8"magic cube")) {
-    nextTurn('c');
-  }
-  if ((turn == _GREEN && greenBulletsSize > 1023) ||
-      (turn == _RED && redBulletsSize > 1023) ||
-      (turn == _DARKBLUE && blueBulletsSize > 1023) ||
-      (turn == _YELLOW && yellowBulletsSize > 1023)) {
-    GuiDisable();
-  }
-  if (GuiButton(button2, u8"multiply by 2")) {
-    nextTurn('m');
-  }
-  GuiEnable();
-  if (GuiButton(button3, u8"release balls")) {
-    nextTurn('r');
+    DrawTexture(letters[6], button1.x - BUTTONHEIGHT - BUTTONGAPX, button1.y,
+                WHITE);
+    DrawTexture(letters[7], button2.x - BUTTONHEIGHT - BUTTONGAPX, button2.y,
+                WHITE);
+    DrawTexture(letters[8], button3.x - BUTTONHEIGHT - BUTTONGAPX, button3.y,
+                WHITE);
+    if (GuiButton(button1, CUBESTRING) || IsKeyPressed(KEY_Z)) {
+      act('c', _YELLOW);
+    }
+    if (blueBulletsSize > 1023) {
+      GuiDisable();
+    }
+    if (GuiButton(button2, MULTIPLYSTRING) ||
+        (yellowBulletsSize < 1023 && IsKeyPressed(KEY_X))) {
+      act('m', _YELLOW);
+    }
+    GuiEnable();
+    if (GuiButton(button3, RELEASESTRING) || IsKeyPressed(KEY_C)) {
+      act('r', _YELLOW);
+    }
   }
 }
 
@@ -360,27 +446,28 @@ void processFrame() {
   //   paused = !paused;
   // }
 
-  if (greenQueue > 0) {
+  /// game logic
+  if (greenQueue > 0 && !greenGameOver) {
     launchBullet(
         (int[]){startX + (SIZE / 2), startY + (SIZE / 2)},
         (float[]){cos(DEG2RAD * greenAngle), sin(DEG2RAD * greenAngle)},
         _GREEN);
     greenQueue -= 1;
   }
-  if (redQueue > 0) {
+  if (redQueue > 0 && !redGameOver) {
     launchBullet((int[]){startX + rectSizeX - (SIZE / 2), startY + (SIZE / 2)},
                  (float[]){cos(DEG2RAD * redAngle), sin(DEG2RAD * redAngle)},
                  _RED);
     redQueue -= 1;
   }
-  if (blueQueue > 0) {
+  if (blueQueue > 0 && !blueGameOver) {
     launchBullet((int[]){startX + rectSizeX - (SIZE / 2),
                          startY + rectSizeY - (SIZE / 2)},
                  (float[]){cos(DEG2RAD * blueAngle), sin(DEG2RAD * blueAngle)},
-                 _DARKBLUE);
+                 _BLUE);
     blueQueue -= 1;
   }
-  if (yellowQueue > 0) {
+  if (yellowQueue > 0 && !yellowGameOver) {
     launchBullet(
         (int[]){startX + (SIZE / 2), startY + rectSizeY - (SIZE / 2)},
         (float[]){cos(DEG2RAD * yellowAngle), sin(DEG2RAD * yellowAngle)},
@@ -388,27 +475,26 @@ void processFrame() {
     yellowQueue -= 1;
   }
 
+  if (!greenGameOver)
+    greenGameOver = field[0][0].team != _GREEN;
+  if (!redGameOver)
+    redGameOver = field[GRIDX - 1][0].team != _RED;
+  if (!blueGameOver)
+    blueGameOver = field[GRIDX - 1][GRIDY - 1].team != _BLUE;
+  if (!yellowGameOver)
+    yellowGameOver = field[0][GRIDY - 1].team != _YELLOW;
+
   /// drawing
   BeginDrawing();
 
   ClearBackground(BACKGROUND);
 
-  if (turn == _GREEN) {
-    DrawRectangle(0, 0, SCREENX / 2, SCREENY / 2, teams[turn]);
-  } else if (turn == _RED) {
-    DrawRectangle(SCREENX / 2, 0, SCREENX / 2, SCREENY / 2, teams[turn]);
-    // } else if (turn == 2) {
-    //   DrawRectangle(startX + (rectSizeX / 3 * 2), 0, startX + (rectSizeX /
-    //   3), startY + (rectSizeY / 2), teams[turn]);
-  } else if (turn == _YELLOW) {
-    DrawRectangle(0, SCREENY / 2, SCREENX / 2, SCREENY / 2, teams[turn]);
-  } else if (turn == _DARKBLUE) {
-    DrawRectangle(SCREENX / 2, SCREENY / 2, SCREENX / 2, SCREENY / 2,
-                  teams[turn]);
-    // } else if (turn == 5) {
-    // DrawRectangle(startX + (rectSizeX / 3 * 2), startY + (rectSizeY / 2),
-    // startX + (rectSizeX / 3), startY + (rectSizeY / 2), teams[turn]);
-  }
+  DrawRectangle(0, 0, SCREENX / 2, SCREENY / 2, teams[_GREEN]);
+  DrawRectangle(SCREENX / 2, 0, SCREENX / 2, SCREENY / 2, teams[_RED]);
+  DrawRectangle(0, SCREENY / 2, SCREENX / 2, SCREENY / 2, teams[_YELLOW]);
+  DrawRectangle(SCREENX / 2, SCREENY / 2, SCREENX / 2, SCREENY / 2,
+                teams[_BLUE]);
+
   DrawRectangle(startX, startY, rectSizeX, rectSizeY, BACKGROUND);
 
   for (int i = 0; i < GRIDX; i++) {
@@ -437,6 +523,7 @@ void processFrame() {
           el->health -= onFieldBullets[i].damage;
           if (el->health <= 0) {
             el->team = onFieldBullets[i].team;
+            el->health = 2;
           }
           skip = true;
           _remove(onFieldBullets, &onFieldBulletsSize, i);
@@ -447,9 +534,9 @@ void processFrame() {
       }
     }
     if (!skip) {
-      if (!paused || IsKeyPressed(KEY_O)) {
-        processBullet(&onFieldBullets[i]);
-      }
+      // if (!paused || IsKeyPressed(KEY_O)) {
+      processBullet(&onFieldBullets[i]);
+      // }
       DrawCircle(onFieldBullets[i].pos[0] + BULLETSIZE,
                  onFieldBullets[i].pos[1] + BULLETSIZE, BULLETSIZE,
                  darken(teams[onFieldBullets[i].team], 0.5));
@@ -461,32 +548,55 @@ void processFrame() {
   }
   // DrawText(TextFormat("%d", onFieldBulletsSize), 10, 10, 24, RAYWHITE);
 
-  DrawRectanglePro(
-      (Rectangle){startX + (SIZE / 2), startY + (SIZE / 2), SIZE * 2, 20}, // NOLINT
-      (Vector2){10, 10}, greenAngle, brighten(GREEN, 0.4));
-  greenAngle = sin(GetTime()) * 45 + 45;
-  DrawRectanglePro((Rectangle){startX + rectSizeX - (SIZE / 2), // NOLINT
-                               startY + (SIZE / 2), SIZE * 2, 20}, // NOLINT
-                   (Vector2){10, 10}, redAngle, brighten(RED, 0.4));
-  redAngle = sin(GetTime()) * 45 + 135;
-  DrawRectanglePro((Rectangle){startX + rectSizeX - (SIZE / 2), // NOLINT
-                               startY + rectSizeY - (SIZE / 2), SIZE * 2, 20}, // NOLINT
-                   (Vector2){10, 10}, blueAngle, brighten(BLUE, 0.4));
-  blueAngle = sin(GetTime()) * 45 - 135;
-  DrawRectanglePro((Rectangle){startX + (SIZE / 2), // NOLINT
-                               startY + rectSizeY - (SIZE / 2), SIZE * 2, 20}, // NOLINT
-                   (Vector2){10, 10}, yellowAngle, brighten(YELLOW, 0.8));
-  yellowAngle = sin(GetTime()) * 45 - 45;
+  if (!greenGameOver) {
+    DrawRectanglePro((Rectangle){startX + (SIZE / 2), // NOLINT
+                                 startY + (SIZE / 2), // NOLINT
+                                 SIZE * 2, 20},       // NOLINT
+                     (Vector2){10, 10}, greenAngle, brighten(GREEN, 0.4));
+    greenAngle = sin(GetTime()) * 45 + 45;
+    DrawText(TextFormat(STOREDSTRING, greenBulletsSize), 10, 10, 24,
+             brighten(GREEN, 0.2));
+  } else {
+    DrawText(GAMEOVERSTRING, 10, 10, 24, brighten(GREEN, 0.2));
+  }
+  if (!redGameOver) {
+    DrawRectanglePro((Rectangle){startX + rectSizeX - (SIZE / 2),    // NOLINT
+                                 startY + (SIZE / 2), SIZE * 2, 20}, // NOLINT
+                     (Vector2){10, 10}, redAngle, brighten(RED, 0.4));
+    redAngle = sin(GetTime()) * 45 + 135;
+    DrawText(TextFormat(STOREDSTRING, redBulletsSize), startX + rectSizeX + 10,
+             10, 24, brighten(RED, 0.2));
+  } else {
+    DrawText(GAMEOVERSTRING, startX + rectSizeX + 10, 10, 24,
+             brighten(RED, 0.2));
+  }
+  if (!blueGameOver) {
+    DrawRectanglePro((Rectangle){startX + rectSizeX - (SIZE / 2), // NOLINT
+                                 startY + rectSizeY - (SIZE / 2), // NOLINT
+                                 SIZE * 2,                        // NOLINT
+                                 20},                             // NOLINT
+                     (Vector2){10, 10}, blueAngle, brighten(BLUE, 0.4));
+    blueAngle = sin(GetTime()) * 45 - 135;
+    DrawText(TextFormat(STOREDSTRING, blueBulletsSize), startX + rectSizeX + 10,
+             SCREENY - 34, 24, brighten(BLUE, 0.2));
+  } else {
+    DrawText(GAMEOVERSTRING, startX + rectSizeX + SCREENY - 34, 10, 24,
+             brighten(BLUE, 0.2));
+  }
+  if (!yellowGameOver) {
+    DrawRectanglePro((Rectangle){startX + (SIZE / 2),             // NOLINT
+                                 startY + rectSizeY - (SIZE / 2), // NOLINT
+                                 SIZE * 2,                        // NOLINT
+                                 20},                             // NOLINT
+                     (Vector2){10, 10}, yellowAngle, brighten(YELLOW, 0.8));
+    yellowAngle = sin(GetTime()) * 45 - 45;
+    DrawText(TextFormat(STOREDSTRING, yellowBulletsSize), 10, SCREENY - 34, 24,
+             darken(YELLOW, 0.8));
+  } else {
+    DrawText(GAMEOVERSTRING, 10, SCREENY - 34, 24, brighten(YELLOW, 0.2));
+  }
 
   buttons();
-  DrawText(TextFormat("stored: %d", greenBulletsSize), 10, 10, 24,
-           brighten(GREEN, 0.2));
-  DrawText(TextFormat("stored: %d", redBulletsSize), startX + rectSizeX + 10,
-           10, 24, brighten(RED, 0.2));
-  DrawText(TextFormat("stored: %d", yellowBulletsSize), 10, SCREENY - 34, 24,
-           darken(YELLOW, 0.8));
-  DrawText(TextFormat("stored: %d", blueBulletsSize), startX + rectSizeX + 10,
-           SCREENY - 34, 24, brighten(BLUE, 0.2));
 
   EndDrawing();
 }
@@ -498,6 +608,71 @@ int main() {
   // font = LoadFontEx("../assets/font.ttf", 24, NULL, 0);
   // SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR);
   // GuiSetFont(font);
+
+  // Q, W, E, I, O, P, Z, X, C, COMMA, PERIOD, SLASH
+  const char prefix[] = "../assets/keys/";
+  Image img;
+  char result[100];
+  sprintf(result, "%s%s", prefix, "Q-Key.png");
+  img = LoadImage(result);
+  ImageResize(&img, BUTTONHEIGHT, BUTTONHEIGHT);
+  letters[0] = LoadTextureFromImage(img);
+  UnloadImage(img);
+  sprintf(result, "%s%s", prefix, "W-Key.png");
+  img = LoadImage(result);
+  ImageResize(&img, BUTTONHEIGHT, BUTTONHEIGHT);
+  letters[1] = LoadTextureFromImage(img);
+  UnloadImage(img);
+  sprintf(result, "%s%s", prefix, "E-Key.png");
+  img = LoadImage(result);
+  ImageResize(&img, BUTTONHEIGHT, BUTTONHEIGHT);
+  letters[2] = LoadTextureFromImage(img);
+  UnloadImage(img);
+  sprintf(result, "%s%s", prefix, "I-Key.png");
+  img = LoadImage(result);
+  ImageResize(&img, BUTTONHEIGHT, BUTTONHEIGHT);
+  letters[3] = LoadTextureFromImage(img);
+  UnloadImage(img);
+  sprintf(result, "%s%s", prefix, "O-Key.png");
+  img = LoadImage(result);
+  ImageResize(&img, BUTTONHEIGHT, BUTTONHEIGHT);
+  letters[4] = LoadTextureFromImage(img);
+  UnloadImage(img);
+  sprintf(result, "%s%s", prefix, "P-Key.png");
+  img = LoadImage(result);
+  ImageResize(&img, BUTTONHEIGHT, BUTTONHEIGHT);
+  letters[5] = LoadTextureFromImage(img);
+  UnloadImage(img);
+  sprintf(result, "%s%s", prefix, "Z-Key.png");
+  img = LoadImage(result);
+  ImageResize(&img, BUTTONHEIGHT, BUTTONHEIGHT);
+  letters[6] = LoadTextureFromImage(img);
+  UnloadImage(img);
+  sprintf(result, "%s%s", prefix, "X-Key.png");
+  img = LoadImage(result);
+  ImageResize(&img, BUTTONHEIGHT, BUTTONHEIGHT);
+  letters[7] = LoadTextureFromImage(img);
+  UnloadImage(img);
+  sprintf(result, "%s%s", prefix, "C-Key.png");
+  img = LoadImage(result);
+  ImageResize(&img, BUTTONHEIGHT, BUTTONHEIGHT);
+  letters[8] = LoadTextureFromImage(img);
+  UnloadImage(img);
+  sprintf(result, "%s%s", prefix, "COMMA-Key.png");
+  img = LoadImage(result);
+  ImageResize(&img, BUTTONHEIGHT, BUTTONHEIGHT);
+  letters[9] = LoadTextureFromImage(img);
+  UnloadImage(img);
+  sprintf(result, "%s%s", prefix, "PERIOD-Key.png");
+  img = LoadImage(result);
+  ImageResize(&img, BUTTONHEIGHT, BUTTONHEIGHT);
+  letters[10] = LoadTextureFromImage(img);
+  UnloadImage(img);
+  sprintf(result, "%s%s", prefix, "SLASH-Key.png");
+  img = LoadImage(result);
+  ImageResize(&img, BUTTONHEIGHT, BUTTONHEIGHT);
+  letters[11] = LoadTextureFromImage(img);
+  UnloadImage(img);
 
   SetTargetFPS(60);
 
