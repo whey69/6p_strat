@@ -195,19 +195,19 @@ int getTeam(int i, int k) {
 int greenAngle = 0;
 int greenQueue = 0;
 bool greenGameOver;
-float greenDelay;
+float greenDelay = 1;
 int redAngle = 0;
 int redQueue = 0;
 bool redGameOver;
-float redDelay;
+float redDelay = 1;
 int blueAngle = 0;
 int blueQueue = 0;
 bool blueGameOver;
-float blueDelay;
+float blueDelay = 1;
 int yellowAngle = 0;
 int yellowQueue = 0;
 bool yellowGameOver;
-float yellowDelay;
+float yellowDelay = 1;
 
 void act(char action, int who) {
   if (who == _GREEN) {
@@ -290,6 +290,8 @@ Font font;
 #define AMOUNTOFLETTERS 12
 Texture2D letters[AMOUNTOFLETTERS];
 
+#define RECHARGECOLOR (Color) {0x08, 0x08, 0x08, 0xa8}
+
 void buttons() {
   Rectangle button1;
   Rectangle button2;
@@ -335,6 +337,15 @@ void buttons() {
       act('r', _GREEN);
     }
     GuiEnable();
+
+    if (greenDelay < 1) {
+      button1.width = BUTTONWIDTH - (BUTTONWIDTH * greenDelay);
+      button2.width = BUTTONWIDTH - (BUTTONWIDTH * greenDelay);
+      button3.width = BUTTONWIDTH - (BUTTONWIDTH * greenDelay);
+      DrawRectangleRec(button1, RECHARGECOLOR);
+      DrawRectangleRec(button2, RECHARGECOLOR);
+      DrawRectangleRec(button3, RECHARGECOLOR);
+    }
   }
   if (!redGameOver) {
     button1 = (Rectangle){(float)SCREENX / 2 + BUTTONGAPX, BUTTONGAPY,
@@ -373,6 +384,15 @@ void buttons() {
       act('r', _RED);
     }
     GuiEnable();
+
+    if (redDelay < 1) {
+      button1.width = BUTTONWIDTH - (BUTTONWIDTH * redDelay);
+      button2.width = BUTTONWIDTH - (BUTTONWIDTH * redDelay);
+      button3.width = BUTTONWIDTH - (BUTTONWIDTH * redDelay);
+      DrawRectangleRec(button1, RECHARGECOLOR);
+      DrawRectangleRec(button2, RECHARGECOLOR);
+      DrawRectangleRec(button3, RECHARGECOLOR);
+    }
   }
   if (!blueGameOver) {
     button3 = (Rectangle){(float)SCREENX / 2 + BUTTONGAPX,
@@ -411,6 +431,15 @@ void buttons() {
       act('r', _BLUE);
     }
     GuiEnable();
+
+    if (blueDelay < 1) {
+      button1.width = BUTTONWIDTH - (BUTTONWIDTH * blueDelay);
+      button2.width = BUTTONWIDTH - (BUTTONWIDTH * blueDelay);
+      button3.width = BUTTONWIDTH - (BUTTONWIDTH * blueDelay);
+      DrawRectangleRec(button1, RECHARGECOLOR);
+      DrawRectangleRec(button2, RECHARGECOLOR);
+      DrawRectangleRec(button3, RECHARGECOLOR);
+    }
   }
   if (!yellowGameOver) {
     button3 = (Rectangle){(float)SCREENX / 2 - BUTTONWIDTH - BUTTONGAPX,
@@ -449,6 +478,15 @@ void buttons() {
       act('r', _YELLOW);
     }
     GuiEnable();
+
+    if (yellowDelay < 1) {
+      button1.width = BUTTONWIDTH - (BUTTONWIDTH * yellowDelay);
+      button2.width = BUTTONWIDTH - (BUTTONWIDTH * yellowDelay);
+      button3.width = BUTTONWIDTH - (BUTTONWIDTH * yellowDelay);
+      DrawRectangleRec(button1, RECHARGECOLOR);
+      DrawRectangleRec(button2, RECHARGECOLOR);
+      DrawRectangleRec(button3, RECHARGECOLOR);
+    }
   }
 }
 
