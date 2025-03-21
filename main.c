@@ -46,8 +46,10 @@ Color brighten(Color color, float factor) {
                  (unsigned char)(color.b + (255 - color.b) * factor), color.a};
 }
 
-#define YELLOW                                                                 \
-  (Color) { 0xff, 0xdb, 0x58, 0xff } // NOLINT
+// clang-format off
+#define YELLOW (Color) { 0xff, 0xdb, 0x58, 0xff } // NOLINT
+// clang-format on
+
 const Color BACKGROUND = BLACK;
 const Color teams[] = {DARKGREEN, RED,      PURPLE,
                        YELLOW,    DARKBLUE, {0xff, 0x7d, 0x31, 0xff}};
