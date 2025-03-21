@@ -1,3 +1,4 @@
+#include <asm-generic/errno.h>
 #include <math.h>
 #include <raylib.h>
 #include <stdio.h>
@@ -71,6 +72,7 @@ typedef struct {
   float vel[2];
   int team;
   int damage;
+  int bounces;
   Rectangle rect;
 } Bullet;
 
@@ -104,19 +106,39 @@ void processBullet(Bullet *bullet) {
     // printf("1\n");
     bullet->pos[0] = startX; // NOLINT
     bullet->vel[0] *= -1;
+    bullet->bounces += 1;
+    if (bullet->bounces == 3) {
+      bullet->vel[1] += GetRandomValue(2, -2);
+      // bullet->bounces = 0;
+    }
   } else if (bullet->pos[0] + BULLETSIZE * 2 > startX + rectSizeX) { // NOLINT
     // printf("2\n");
     bullet->pos[0] = startX + rectSizeX - (BULLETSIZE * 2); // NOLINT
     bullet->vel[0] *= -1;
+    bullet->bounces += 1;
+    if (bullet->bounces == 3) {
+      bullet->vel[1] += GetRandomValue(2, -2);
+      // bullet->bounces = 0;
+    }
   }
   if (bullet->pos[1] < startY) { // NOLINT
     // printf("3\n");
     bullet->pos[1] = startY; // NOLINT
     bullet->vel[1] *= -1;
+    bullet->bounces += 1;
+    if (bullet->bounces == 3) {
+      bullet->vel[0] += GetRandomValue(2, -2);
+      // bullet->bounces = 0;
+    }
   } else if (bullet->pos[1] + BULLETSIZE * 2 > startY + rectSizeY) { // NOLINT
     // printf("4\n");
     bullet->pos[1] = startY + rectSizeY - (BULLETSIZE * 2); // NOLINT
     bullet->vel[1] *= -1;
+    bullet->bounces += 1;
+    if (bullet->bounces == 3) {
+      bullet->vel[0] += GetRandomValue(2, -2);
+      // bullet->bounces = 0;
+    }
   }
   // fflush(stdout);
 
@@ -132,15 +154,15 @@ Bullet onFieldBullets[4100];
 int onFieldBulletsSize;
 
 // these guys are for visual storage
-Bullet greenBullets[1024] = {(Bullet){200, 400, 5, 5, _GREEN, 0, {}}};
+Bullet greenBullets[1024] = {(Bullet){200, 400, 5, 5, _GREEN, 0, 0, {}}};
 int greenBulletsSize = 1;
-Bullet redBullets[1024] = {(Bullet){SCREENX - 200, 200, 5, 5, _RED, 0, {}}};
+Bullet redBullets[1024] = {(Bullet){SCREENX - 200, 200, 5, 5, _RED, 0, 0, {}}};
 int redBulletsSize = 1;
 Bullet yellowBullets[1024] = {
-    (Bullet){200, SCREENY - 199, 5, 5, _YELLOW, 0, {}}};
+    (Bullet){200, SCREENY - 199, 5, 5, _YELLOW, 0, 0, {}}};
 int yellowBulletsSize = 1;
 Bullet blueBullets[1024] = {
-    (Bullet){SCREENX - 102, SCREENY - 450, -5, 5, _BLUE, 0, {}}};
+    (Bullet){SCREENX - 102, SCREENY - 450, -5, 5, _BLUE, 0, 0, {}}};
 int blueBulletsSize = 1;
 
 void launchBullet(int pos[2], float vel[2], int team) {
@@ -152,7 +174,7 @@ void launchBullet(int pos[2], float vel[2], int team) {
     // if (vel[1] == 0) {
     //   vel[1] = 5;
     // }
-    Bullet bullet = {pos[0], pos[1], vel[0] * 5, vel[1] * 5, team, 1, rect};
+    Bullet bullet = {pos[0], pos[1], vel[0] * 5, vel[1] * 5, team, 1, 0, rect};
     insert(onFieldBullets, &onFieldBulletsSize, bullet);
   }
 }
@@ -175,68 +197,68 @@ void processBulletVisual(Bullet *bullet, int team) {
       bullet->vel[0] *= -1;
       bullet->pos[0] = (startX / 2) - (VISUALSIZE / 2); // NOLINT
     }
-    if (bullet->pos[0] + BULLETSIZE > ((startX / 2) - (VISUALSIZE / 2) + VISUALSIZE)) { // NOLINT
+    if (bullet->pos[0] + (BULLETSIZE * 2) > ((startX / 2) - (VISUALSIZE / 2) + VISUALSIZE)) { // NOLINT
       bullet->vel[0] *= -1;
-      bullet->pos[0] = (startX / 2) - (VISUALSIZE / 2) + VISUALSIZE - BULLETSIZE; // NOLINT
+      bullet->pos[0] = (startX / 2) - (VISUALSIZE / 2) + VISUALSIZE - (BULLETSIZE * 2); // NOLINT
     }
     if (bullet->pos[1] < (SCREENY / 4) - (VISUALSIZE / 2)) { // NOLINT
       bullet->vel[1] *= -1;
       bullet->pos[1] = (SCREENY / 4) - (VISUALSIZE / 2); // NOLINT
     }
-    if (bullet->pos[1] + BULLETSIZE > (SCREENY / 4) - (VISUALSIZE / 2) + VISUALSIZE) { // NOLINT
+    if (bullet->pos[1] + (BULLETSIZE * 2) > (SCREENY / 4) - (VISUALSIZE / 2) + VISUALSIZE) { // NOLINT
       bullet->vel[1] *= -1;
-      bullet->pos[1] = (SCREENY / 4) - (VISUALSIZE / 2) + VISUALSIZE - BULLETSIZE; // NOLINT
+      bullet->pos[1] = (SCREENY / 4) - (VISUALSIZE / 2) + VISUALSIZE - (BULLETSIZE * 2); // NOLINT
     }
   } else if (team == _RED) {
     if (bullet->pos[0] < startX + rectSizeX + (startX / 2) - (VISUALSIZE / 2)) { // NOLINT
       bullet->vel[0] *= -1;
       bullet->pos[0] = startX + rectSizeX + (startX / 2) - (VISUALSIZE / 2); // NOLINT
     }
-    if (bullet->pos[0] + BULLETSIZE > startX + rectSizeX + ((startX / 2) - (VISUALSIZE / 2) + VISUALSIZE)) { // NOLINT
+    if (bullet->pos[0] + (BULLETSIZE * 2) > startX + rectSizeX + ((startX / 2) - (VISUALSIZE / 2) + VISUALSIZE)) { // NOLINT
       bullet->vel[0] *= -1;
-      bullet->pos[0] = startX + rectSizeX + (startX / 2) - (VISUALSIZE / 2) + VISUALSIZE - BULLETSIZE; // NOLINT
+      bullet->pos[0] = startX + rectSizeX + (startX / 2) - (VISUALSIZE / 2) + VISUALSIZE - (BULLETSIZE * 2); // NOLINT
     }
     if (bullet->pos[1] < (SCREENY / 4) - (VISUALSIZE / 2)) { // NOLINT
       bullet->vel[1] *= -1;
       bullet->pos[1] = (SCREENY / 4) - (VISUALSIZE / 2); // NOLINT
     }
-    if (bullet->pos[1] + BULLETSIZE > (SCREENY / 4) - (VISUALSIZE / 2) + VISUALSIZE) { // NOLINT
+    if (bullet->pos[1] + (BULLETSIZE * 2) > (SCREENY / 4) - (VISUALSIZE / 2) + VISUALSIZE) { // NOLINT
       bullet->vel[1] *= -1;
-      bullet->pos[1] = (SCREENY / 4) - (VISUALSIZE / 2) + VISUALSIZE - BULLETSIZE; // NOLINT
+      bullet->pos[1] = (SCREENY / 4) - (VISUALSIZE / 2) + VISUALSIZE - (BULLETSIZE * 2); // NOLINT
     }
   } else if (team == _BLUE) {
     if (bullet->pos[0] < startX + rectSizeX + (startX / 2) - (VISUALSIZE / 2)) { // NOLINT
       bullet->vel[0] *= -1;
       bullet->pos[0] = startX + rectSizeX + (startX / 2) - (VISUALSIZE / 2); // NOLINT
     }
-    if (bullet->pos[0] + BULLETSIZE > startX + rectSizeX + ((startX / 2) - (VISUALSIZE / 2) + VISUALSIZE)) { // NOLINT
+    if (bullet->pos[0] + (BULLETSIZE * 2) > startX + rectSizeX + ((startX / 2) - (VISUALSIZE / 2) + VISUALSIZE)) { // NOLINT
       bullet->vel[0] *= -1;
-      bullet->pos[0] = startX + rectSizeX + (startX / 2) - (VISUALSIZE / 2) + VISUALSIZE - BULLETSIZE; // NOLINT
+      bullet->pos[0] = startX + rectSizeX + (startX / 2) - (VISUALSIZE / 2) + VISUALSIZE - (BULLETSIZE * 2); // NOLINT
     }
     if (bullet->pos[1] < (SCREENY / 2) + (SCREENY / 4) - (VISUALSIZE / 2)) { // NOLINT
       bullet->vel[1] *= -1;
       bullet->pos[1] = (SCREENY / 2) + (SCREENY / 4) - (VISUALSIZE / 2); // NOLINT
     }
-    if (bullet->pos[1] + BULLETSIZE > (SCREENY / 2) + (SCREENY / 4) - (VISUALSIZE / 2) + VISUALSIZE) { // NOLINT
+    if (bullet->pos[1] + (BULLETSIZE * 2) > (SCREENY / 2) + (SCREENY / 4) - (VISUALSIZE / 2) + VISUALSIZE) { // NOLINT
       bullet->vel[1] *= -1;
-      bullet->pos[1] = (SCREENY / 2) + (SCREENY / 4) - (VISUALSIZE / 2) + VISUALSIZE - BULLETSIZE; // NOLINT
+      bullet->pos[1] = (SCREENY / 2) + (SCREENY / 4) - (VISUALSIZE / 2) + VISUALSIZE - (BULLETSIZE * 2); // NOLINT
     }
   } else if (team == _YELLOW) {
     if (bullet->pos[0] < (startX / 2) - (VISUALSIZE / 2)) { // NOLINT
       bullet->vel[0] *= -1;
       bullet->pos[0] = (startX / 2) - (VISUALSIZE / 2); // NOLINT
     }
-    if (bullet->pos[0] + BULLETSIZE > ((startX / 2) - (VISUALSIZE / 2) + VISUALSIZE)) { // NOLINT
+    if (bullet->pos[0] + (BULLETSIZE * 2) > ((startX / 2) - (VISUALSIZE / 2) + VISUALSIZE)) { // NOLINT
       bullet->vel[0] *= -1;
-      bullet->pos[0] = (startX / 2) - (VISUALSIZE / 2) + VISUALSIZE - BULLETSIZE; // NOLINT
+      bullet->pos[0] = (startX / 2) - (VISUALSIZE / 2) + VISUALSIZE - (BULLETSIZE * 2); // NOLINT
     }
     if (bullet->pos[1] < (SCREENY / 2) + (SCREENY / 4) - (VISUALSIZE / 2)) { // NOLINT
       bullet->vel[1] *= -1;
       bullet->pos[1] = (SCREENY / 2) + (SCREENY / 4) - (VISUALSIZE / 2); // NOLINT
     }
-    if (bullet->pos[1] + BULLETSIZE > (SCREENY / 2) + (SCREENY / 4) - (VISUALSIZE / 2) + VISUALSIZE) { // NOLINT
+    if (bullet->pos[1] + (BULLETSIZE * 2) > (SCREENY / 2) + (SCREENY / 4) - (VISUALSIZE / 2) + VISUALSIZE) { // NOLINT
       bullet->vel[1] *= -1;
-      bullet->pos[1] = (SCREENY / 2) + (SCREENY / 4) - (VISUALSIZE / 2) + VISUALSIZE - BULLETSIZE; // NOLINT
+      bullet->pos[1] = (SCREENY / 2) + (SCREENY / 4) - (VISUALSIZE / 2) + VISUALSIZE - (BULLETSIZE * 2); // NOLINT
     }
   }
 }
@@ -326,6 +348,7 @@ void act(char action, int who) {
                           GetRandomValue(-5, 5),
                           _GREEN,
                           0,
+                          0,
                           {}});
         }
       }
@@ -345,6 +368,7 @@ void act(char action, int who) {
                    GetRandomValue(-5, 5),
                    GetRandomValue(-5, 5),
                    _GREEN,
+                   0,
                    0,
                    {}};
     }
@@ -376,6 +400,7 @@ void act(char action, int who) {
                           GetRandomValue(-5, 5),
                           _RED,
                           0,
+                          0,
                           {}});
         }
       }
@@ -395,6 +420,7 @@ void act(char action, int who) {
           GetRandomValue(-5, 5),
           GetRandomValue(-5, 5),
           _GREEN,
+          0,
           0,
           {}};
     }
@@ -427,6 +453,7 @@ void act(char action, int who) {
                           GetRandomValue(-5, 5),
                           _BLUE,
                           0,
+                          0,
                           {}});
         }
       }
@@ -446,6 +473,7 @@ void act(char action, int who) {
           GetRandomValue(-5, 5),
           GetRandomValue(-5, 5),
           _BLUE,
+          0,
           0,
           {}};
     }
@@ -477,6 +505,7 @@ void act(char action, int who) {
                           GetRandomValue(-5, 5),
                           _YELLOW,
                           0,
+                          0,
                           {}});
         }
       }
@@ -495,6 +524,7 @@ void act(char action, int who) {
           GetRandomValue(-5, 5),
           GetRandomValue(-5, 5),
           _YELLOW,
+          0,
           0,
           {}};
     }
@@ -753,6 +783,7 @@ void processFrame() {
   /// game logic
   frames++;
   if (frames % 2 == 1) {
+    // TODO: figure out why these spawn misplaced
     if (greenQueue > 0 && !greenGameOver) {
       launchBullet(
           (int[]){startX + (SIZE / 2), startY + (SIZE / 2)},
@@ -796,11 +827,26 @@ void processFrame() {
 
   ClearBackground(BACKGROUND);
 
-  DrawRectangle(0, 0, SCREENX / 2, SCREENY / 2, teams[_GREEN]);
-  DrawRectangle(SCREENX / 2, 0, SCREENX / 2, SCREENY / 2, teams[_RED]);
-  DrawRectangle(0, SCREENY / 2, SCREENX / 2, SCREENY / 2, teams[_YELLOW]);
-  DrawRectangle(SCREENX / 2, SCREENY / 2, SCREENX / 2, SCREENY / 2,
-                teams[_BLUE]);
+  if (!greenGameOver)
+    DrawRectangle(0, 0, SCREENX / 2, SCREENY / 2, teams[_GREEN]);
+  else
+    DrawRectangle(0, 0, SCREENX / 2, SCREENY / 2, darken(teams[_GREEN], 0.5));
+  if (!redGameOver)
+    DrawRectangle(SCREENX / 2, 0, SCREENX / 2, SCREENY / 2, teams[_RED]);
+  else
+    DrawRectangle(SCREENX / 2, 0, SCREENX / 2, SCREENY / 2,
+                  darken(teams[_RED], 0.5));
+  if (!yellowGameOver)
+    DrawRectangle(0, SCREENY / 2, SCREENX / 2, SCREENY / 2, teams[_YELLOW]);
+  else
+    DrawRectangle(0, SCREENY / 2, SCREENX / 2, SCREENY / 2,
+                  darken(teams[_YELLOW], 0.5));
+  if (!blueGameOver)
+    DrawRectangle(SCREENX / 2, SCREENY / 2, SCREENX / 2, SCREENY / 2,
+                  teams[_BLUE]);
+  else
+    DrawRectangle(SCREENX / 2, SCREENY / 2, SCREENX / 2, SCREENY / 2,
+                  darken(teams[_BLUE], 0.5));
 
   DrawRectangle(startX, startY, rectSizeX, rectSizeY, BACKGROUND);
 
@@ -818,6 +864,9 @@ void processFrame() {
   }
 
   for (int i = 0; i < onFieldBulletsSize; i++) {
+    if (onFieldBullets[i].bounces >= 5) {
+      _remove(onFieldBullets, &onFieldBulletsSize, i);
+    }
     bool skip;
     for (int x = 0; x < GRIDX; x++) {
       if (skip) {
@@ -847,12 +896,21 @@ void processFrame() {
       // if (!paused || IsKeyPressed(KEY_O)) {
       processBullet(&onFieldBullets[i]);
       // }
-      DrawCircle(onFieldBullets[i].pos[0] + BULLETSIZE,
-                 onFieldBullets[i].pos[1] + BULLETSIZE, BULLETSIZE,
-                 darken(teams[onFieldBullets[i].team], 0.5));
-      DrawCircle(onFieldBullets[i].pos[0] + BULLETSIZE,
-                 onFieldBullets[i].pos[1] + BULLETSIZE, BULLETSIZE * 0.8,
-                 brighten(teams[onFieldBullets[i].team], 0.2));
+      if (onFieldBullets[i].bounces < 3) {
+        DrawCircle(onFieldBullets[i].pos[0] + BULLETSIZE,
+                   onFieldBullets[i].pos[1] + BULLETSIZE, BULLETSIZE,
+                   darken(teams[onFieldBullets[i].team], 0.5));
+        DrawCircle(onFieldBullets[i].pos[0] + BULLETSIZE,
+                   onFieldBullets[i].pos[1] + BULLETSIZE, BULLETSIZE * 0.8,
+                   brighten(teams[onFieldBullets[i].team], 0.2));
+      } else {
+        DrawCircle(onFieldBullets[i].pos[0] + BULLETSIZE,
+                   onFieldBullets[i].pos[1] + BULLETSIZE, BULLETSIZE,
+                   darken(teams[onFieldBullets[i].team], 0.7));
+        DrawCircle(onFieldBullets[i].pos[0] + BULLETSIZE,
+                   onFieldBullets[i].pos[1] + BULLETSIZE, BULLETSIZE * 0.8,
+                   teams[onFieldBullets[i].team]);
+      }
     }
     skip = false;
   }
@@ -886,7 +944,7 @@ void processFrame() {
                  brighten(teams[_GREEN], 0.2));
     }
   } else {
-    DrawText(GAMEOVERSTRING, 10, 10, 24, BLACK);
+    DrawText(GAMEOVERSTRING, 10, 10, 24, RAYWHITE);
   }
   if (!redGameOver) {
     DrawRectanglePro((Rectangle){startX + rectSizeX - (SIZE / 2),    // NOLINT
@@ -914,7 +972,7 @@ void processFrame() {
                  brighten(teams[_RED], 0.2));
     }
   } else {
-    DrawText(GAMEOVERSTRING, startX + rectSizeX + 10, 10, 24, BLACK);
+    DrawText(GAMEOVERSTRING, startX + rectSizeX + 10, 10, 24, RAYWHITE);
   }
   if (!blueGameOver) {
     DrawRectanglePro((Rectangle){startX + rectSizeX - (SIZE / 2), // NOLINT
@@ -944,7 +1002,8 @@ void processFrame() {
                  brighten(teams[_BLUE], 0.2));
     }
   } else {
-    DrawText(GAMEOVERSTRING, startX + rectSizeX + 10, SCREENY - 34, 24, BLACK);
+    DrawText(GAMEOVERSTRING, startX + rectSizeX + 10, SCREENY - 34, 24,
+             RAYWHITE);
   }
   if (!yellowGameOver) {
     DrawRectanglePro((Rectangle){startX + (SIZE / 2),             // NOLINT
@@ -974,7 +1033,7 @@ void processFrame() {
                  brighten(teams[_YELLOW], 0.2));
     }
   } else {
-    DrawText(GAMEOVERSTRING, 10, SCREENY - 34, 24, BLACK);
+    DrawText(GAMEOVERSTRING, 10, SCREENY - 34, 24, RAYWHITE);
   }
 
   buttons();
