@@ -483,6 +483,20 @@ void act(char action, int who) {
     } else if (action == 'r') {
       yellowQueue += yellowBulletsSize;
       yellowBulletsSize = 1;
+
+      // scary
+      memset(yellowBullets, 0, sizeof(yellowBullets));
+      yellowBullets[0] = (Bullet){
+          GetRandomValue((startX / 2) - (VISUALSIZE / 2),
+                         (startX / 2) - (VISUALSIZE / 2) + VISUALSIZE),
+          GetRandomValue((SCREENY / 2) + (SCREENY / 4) - (VISUALSIZE / 2),
+                         (SCREENY / 2) + (SCREENY / 4) - (VISUALSIZE / 2) +
+                             VISUALSIZE - BULLETSIZE),
+          GetRandomValue(-5, 5),
+          GetRandomValue(-5, 5),
+          _YELLOW,
+          0,
+          {}};
     }
     yellowDelay = 0;
   }
