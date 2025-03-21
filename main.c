@@ -290,7 +290,8 @@ Font font;
 #define AMOUNTOFLETTERS 12
 Texture2D letters[AMOUNTOFLETTERS];
 
-#define RECHARGECOLOR (Color) {0x08, 0x08, 0x08, 0xa8}
+#define RECHARGECOLOR                                                          \
+  (Color) { 0x08, 0x08, 0x08, 0xa8 }
 
 void buttons() {
   Rectangle button1;
@@ -689,72 +690,18 @@ int main() {
   // SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR);
   // GuiSetFont(font);
 
-  // good lord
-  // im pretty sure you can optimize this but i dont feel like it lmaooo
+  const char *keys[] = {"Q", "W", "E", "I",     "O",      "P",
+                        "Z", "X", "C", "COMMA", "PERIOD", "SLASH"};
   const char prefix[] = "../assets/keys/";
   Image img;
   char result[100];
-  sprintf(result, "%s%s", prefix, "Q-Key.png");
-  img = LoadImage(result);
-  ImageResize(&img, BUTTONHEIGHT, BUTTONHEIGHT);
-  letters[0] = LoadTextureFromImage(img);
-  UnloadImage(img);
-  sprintf(result, "%s%s", prefix, "W-Key.png");
-  img = LoadImage(result);
-  ImageResize(&img, BUTTONHEIGHT, BUTTONHEIGHT);
-  letters[1] = LoadTextureFromImage(img);
-  UnloadImage(img);
-  sprintf(result, "%s%s", prefix, "E-Key.png");
-  img = LoadImage(result);
-  ImageResize(&img, BUTTONHEIGHT, BUTTONHEIGHT);
-  letters[2] = LoadTextureFromImage(img);
-  UnloadImage(img);
-  sprintf(result, "%s%s", prefix, "I-Key.png");
-  img = LoadImage(result);
-  ImageResize(&img, BUTTONHEIGHT, BUTTONHEIGHT);
-  letters[3] = LoadTextureFromImage(img);
-  UnloadImage(img);
-  sprintf(result, "%s%s", prefix, "O-Key.png");
-  img = LoadImage(result);
-  ImageResize(&img, BUTTONHEIGHT, BUTTONHEIGHT);
-  letters[4] = LoadTextureFromImage(img);
-  UnloadImage(img);
-  sprintf(result, "%s%s", prefix, "P-Key.png");
-  img = LoadImage(result);
-  ImageResize(&img, BUTTONHEIGHT, BUTTONHEIGHT);
-  letters[5] = LoadTextureFromImage(img);
-  UnloadImage(img);
-  sprintf(result, "%s%s", prefix, "Z-Key.png");
-  img = LoadImage(result);
-  ImageResize(&img, BUTTONHEIGHT, BUTTONHEIGHT);
-  letters[6] = LoadTextureFromImage(img);
-  UnloadImage(img);
-  sprintf(result, "%s%s", prefix, "X-Key.png");
-  img = LoadImage(result);
-  ImageResize(&img, BUTTONHEIGHT, BUTTONHEIGHT);
-  letters[7] = LoadTextureFromImage(img);
-  UnloadImage(img);
-  sprintf(result, "%s%s", prefix, "C-Key.png");
-  img = LoadImage(result);
-  ImageResize(&img, BUTTONHEIGHT, BUTTONHEIGHT);
-  letters[8] = LoadTextureFromImage(img);
-  UnloadImage(img);
-  sprintf(result, "%s%s", prefix, "COMMA-Key.png");
-  img = LoadImage(result);
-  ImageResize(&img, BUTTONHEIGHT, BUTTONHEIGHT);
-  letters[9] = LoadTextureFromImage(img);
-  UnloadImage(img);
-  sprintf(result, "%s%s", prefix, "PERIOD-Key.png");
-  img = LoadImage(result);
-  ImageResize(&img, BUTTONHEIGHT, BUTTONHEIGHT);
-  letters[10] = LoadTextureFromImage(img);
-  UnloadImage(img);
-  sprintf(result, "%s%s", prefix, "SLASH-Key.png");
-  img = LoadImage(result);
-  ImageResize(&img, BUTTONHEIGHT, BUTTONHEIGHT);
-  letters[11] = LoadTextureFromImage(img);
-  UnloadImage(img);
-
+  for (int i = 0; i < 11; i++) {
+    sprintf(result, "../assets/keys/%s-Key.png", keys[i]);
+    img = LoadImage(result);
+    ImageResize(&img, BUTTONHEIGHT, BUTTONHEIGHT);
+    letters[i] = LoadTextureFromImage(img);
+    UnloadImage(img);
+  }
   SetTargetFPS(60);
 
   for (int x = 0; x < GRIDX; x++) {
