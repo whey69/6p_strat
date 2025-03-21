@@ -193,17 +193,20 @@ int getTeam(int i, int k) {
 int greenAngle = 0;
 int greenQueue = 0;
 bool greenGameOver;
+float greenDelay;
 int redAngle = 0;
 int redQueue = 0;
 bool redGameOver;
+float redDelay;
 int blueAngle = 0;
 int blueQueue = 0;
 bool blueGameOver;
+float blueDelay;
 int yellowAngle = 0;
 int yellowQueue = 0;
 bool yellowGameOver;
+float yellowDelay;
 
-// int turn = 0;
 void act(char action, int who) {
   if (who == _GREEN) {
     // who = _RED;
@@ -221,6 +224,7 @@ void act(char action, int who) {
       greenQueue += greenBulletsSize;
       greenBulletsSize = 1;
     }
+    greenDelay = 0;
   } else if (who == _RED) {
     // who = _DARKBLUE;
     if (action == 'm' && redBulletsSize < 1024) {
@@ -236,6 +240,7 @@ void act(char action, int who) {
       redQueue += redBulletsSize;
       redBulletsSize = 1;
     }
+    redDelay = 0;
   } else if (who == _BLUE) {
     // who = _YELLOW;
     if (action == 'm' && blueBulletsSize < 1024) {
@@ -251,6 +256,7 @@ void act(char action, int who) {
       blueQueue += blueBulletsSize;
       blueBulletsSize = 1;
     }
+    blueDelay = 0;
   } else {
     // who = _GREEN;
     if (action == 'm' && yellowBulletsSize < 1024) {
@@ -266,6 +272,7 @@ void act(char action, int who) {
       yellowQueue += yellowBulletsSize;
       yellowBulletsSize = 1;
     }
+    yellowDelay = 0;
   }
 }
 
@@ -281,14 +288,14 @@ Font font;
 #define AMOUNTOFLETTERS 12
 Texture2D letters[AMOUNTOFLETTERS];
 
-int delayGreen;
-int delayRed;
-int delayBlue;
-int delayYellow;
 void buttons() {
   Rectangle button1;
   Rectangle button2;
   Rectangle button3;
+  greenDelay += GetFrameTime();
+  redDelay += GetFrameTime();
+  blueDelay += GetFrameTime();
+  yellowDelay += GetFrameTime();
   if (!greenGameOver) {
     button1 = (Rectangle){(float)SCREENX / 2 - BUTTONWIDTH - BUTTONGAPX,
                           BUTTONGAPY, BUTTONWIDTH, BUTTONHEIGHT};
@@ -304,20 +311,28 @@ void buttons() {
                 WHITE);
     DrawTexture(letters[2], button3.x - BUTTONHEIGHT - BUTTONGAPX, button3.y,
                 WHITE);
-    if (GuiButton(button1, CUBESTRING) || IsKeyPressed(KEY_Q)) {
+    if (greenDelay < 1) {
+      GuiDisable();
+    }
+    if ((GuiButton(button1, CUBESTRING) || IsKeyPressed(KEY_Q)) &&
+        greenDelay > 1) {
       act('c', _GREEN);
     }
     if (greenBulletsSize > 1023) {
       GuiDisable();
     }
-    if (GuiButton(button2, MULTIPLYSTRING) ||
-        (greenBulletsSize < 1023 && IsKeyPressed(KEY_W))) {
+    if ((GuiButton(button2, MULTIPLYSTRING) ||
+         (greenBulletsSize < 1023 && IsKeyPressed(KEY_W))) &&
+        greenDelay > 1) {
       act('m', _GREEN);
     }
-    GuiEnable();
-    if (GuiButton(button3, RELEASESTRING) || IsKeyPressed(KEY_E)) {
+    if (greenDelay > 1)
+      GuiEnable();
+    if ((GuiButton(button3, RELEASESTRING) || IsKeyPressed(KEY_E)) &&
+        greenDelay > 1) {
       act('r', _GREEN);
     }
+    GuiEnable();
   }
   if (!redGameOver) {
     button1 = (Rectangle){(float)SCREENX / 2 + BUTTONGAPX, BUTTONGAPY,
@@ -334,20 +349,28 @@ void buttons() {
                 WHITE);
     DrawTexture(letters[5], button3.x + BUTTONWIDTH + BUTTONGAPX, button3.y,
                 WHITE);
-    if (GuiButton(button1, CUBESTRING) || IsKeyPressed(KEY_I)) {
+    if (redDelay < 1) {
+      GuiDisable();
+    }
+    if ((GuiButton(button1, CUBESTRING) || IsKeyPressed(KEY_I)) &&
+        redDelay > 1) {
       act('c', _RED);
     }
     if (redBulletsSize > 1023) {
       GuiDisable();
     }
-    if (GuiButton(button2, MULTIPLYSTRING) ||
-        (redBulletsSize < 1023 && IsKeyPressed(KEY_O))) {
+    if ((GuiButton(button2, MULTIPLYSTRING) ||
+         (redBulletsSize < 1023 && IsKeyPressed(KEY_O))) &&
+        redDelay > 1) {
       act('m', _RED);
     }
-    GuiEnable();
-    if (GuiButton(button3, RELEASESTRING) || IsKeyPressed(KEY_P)) {
+    if (redDelay > 1)
+      GuiEnable();
+    if ((GuiButton(button3, RELEASESTRING) || IsKeyPressed(KEY_P)) &&
+        redDelay > 1) {
       act('r', _RED);
     }
+    GuiEnable();
   }
   if (!blueGameOver) {
     button3 = (Rectangle){(float)SCREENX / 2 + BUTTONGAPX,
@@ -365,20 +388,27 @@ void buttons() {
                 WHITE);
     DrawTexture(letters[11], button3.x + BUTTONWIDTH + BUTTONGAPX, button3.y,
                 WHITE);
-    if (GuiButton(button1, CUBESTRING) || IsKeyPressed(KEY_COMMA)) {
+    if (blueDelay < 1)
+      GuiDisable();
+    if ((GuiButton(button1, CUBESTRING) || IsKeyPressed(KEY_COMMA)) &&
+        blueDelay > 1) {
       act('c', _BLUE);
     }
     if (blueBulletsSize > 1023) {
       GuiDisable();
     }
-    if (GuiButton(button2, MULTIPLYSTRING) ||
-        (blueBulletsSize < 1023 && IsKeyPressed(KEY_PERIOD))) {
+    if ((GuiButton(button2, MULTIPLYSTRING) ||
+         (blueBulletsSize < 1023 && IsKeyPressed(KEY_PERIOD))) &&
+        blueDelay > 1) {
       act('m', _BLUE);
     }
-    GuiEnable();
-    if (GuiButton(button3, RELEASESTRING) || IsKeyPressed(KEY_SLASH)) {
+    if (blueDelay > 1)
+      GuiEnable();
+    if ((GuiButton(button3, RELEASESTRING) || IsKeyPressed(KEY_SLASH)) &&
+        blueDelay > 1) {
       act('r', _BLUE);
     }
+    GuiEnable();
   }
   if (!yellowGameOver) {
     button3 = (Rectangle){(float)SCREENX / 2 - BUTTONWIDTH - BUTTONGAPX,
@@ -396,20 +426,27 @@ void buttons() {
                 WHITE);
     DrawTexture(letters[8], button3.x - BUTTONHEIGHT - BUTTONGAPX, button3.y,
                 WHITE);
-    if (GuiButton(button1, CUBESTRING) || IsKeyPressed(KEY_Z)) {
+    if (yellowDelay < 1)
+      GuiDisable();
+    if ((GuiButton(button1, CUBESTRING) || IsKeyPressed(KEY_Z)) &&
+        yellowDelay > 1) {
       act('c', _YELLOW);
     }
-    if (blueBulletsSize > 1023) {
+    if (yellowBulletsSize > 1023) {
       GuiDisable();
     }
-    if (GuiButton(button2, MULTIPLYSTRING) ||
-        (yellowBulletsSize < 1023 && IsKeyPressed(KEY_X))) {
+    if ((GuiButton(button2, MULTIPLYSTRING) ||
+         (yellowBulletsSize < 1023 && IsKeyPressed(KEY_X))) &&
+        yellowDelay > 1) {
       act('m', _YELLOW);
     }
-    GuiEnable();
-    if (GuiButton(button3, RELEASESTRING) || IsKeyPressed(KEY_C)) {
+    if (yellowDelay > 1)
+      GuiEnable();
+    if ((GuiButton(button3, RELEASESTRING) || IsKeyPressed(KEY_C)) &&
+        yellowDelay > 1) {
       act('r', _YELLOW);
     }
+    GuiEnable();
   }
 }
 
@@ -518,15 +555,18 @@ void processFrame() {
       }
       for (int y = 0; y < GRIDY; y++) {
         Cell *el = &field[x][y];
-        if (onFieldBullets[i].team != el->team &&
-            CheckCollisionRecs(onFieldBullets[i].rect, el->rect)) {
-          el->health -= onFieldBullets[i].damage;
-          if (el->health <= 0) {
-            el->team = onFieldBullets[i].team;
+        if (CheckCollisionRecs(onFieldBullets[i].rect, el->rect)) {
+          if (onFieldBullets[i].team != el->team) {
+            el->health -= onFieldBullets[i].damage;
+            if (el->health <= 0) {
+              el->team = onFieldBullets[i].team;
+              el->health = 2;
+            }
+            skip = true;
+            _remove(onFieldBullets, &onFieldBulletsSize, i);
+          } else if (el->health == 1 && onFieldBullets[i].team == el->team) {
             el->health = 2;
           }
-          skip = true;
-          _remove(onFieldBullets, &onFieldBulletsSize, i);
         }
         if (skip) {
           break;
@@ -609,7 +649,8 @@ int main() {
   // SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR);
   // GuiSetFont(font);
 
-  // Q, W, E, I, O, P, Z, X, C, COMMA, PERIOD, SLASH
+  // good lord
+  // im pretty sure you can optimize this but i dont feel like it lmaooo
   const char prefix[] = "../assets/keys/";
   Image img;
   char result[100];
