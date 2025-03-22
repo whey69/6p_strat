@@ -29,3 +29,5 @@ raygui.h
 rl/*
 rl
 .clang-format
+win_debug
+win_debug/*

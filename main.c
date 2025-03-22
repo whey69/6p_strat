@@ -1,6 +1,7 @@
 #include <math.h>
 #include <raylib.h>
 #include <stdio.h>
+#include <string.h>
 
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
@@ -149,7 +150,7 @@ enum Teams { _GREEN, _RED, _PURPLE, _YELLOW, _BLUE, _DARKORANGE };
 
 // max 1024 per player !important
 // + 4 just in case
-Bullet onFieldBullets[4100];
+Bullet onFieldBullets[8200];
 int onFieldBulletsSize;
 
 // these guys are for visual storage
@@ -322,7 +323,236 @@ int yellowQueue = 0;
 bool yellowGameOver;
 float yellowDelay = 1;
 
+enum Modifiers {
+  RELEASE_SIMPLE,
+  RELEASE_DIVIDE_2,
+  RELEASE_DIVIDE_4,
+  RESET_BALLS,
+  REMOVE_FIELD_BALLS,
+  REMOVE_QUEUE_BALLS,
+  NOTHING,
+  DIVIDE_2,
+  DIVIDE_4,
+  RELEASE_MULTIPLIED_2,
+
+  MOD_LAST
+};
+
+char *msgGreen = "";
+int msgTimeGreen = 0;
+char *msgRed = "";
+int msgTimeRed = 0;
+char *msgBlue = "";
+int msgTimeBlue = 0;
+char *msgYellow = "";
+int msgTimeYellow = 0;
+
+void showMsg(char *msg, int who) {
+  if (who == _GREEN) {
+    msgGreen = msg;
+    msgTimeGreen = 60;
+  }
+  if (who == _RED) {
+    msgRed = msg;
+    msgTimeRed = 60;
+  }
+  if (who == _BLUE) {
+    msgBlue = msg;
+    msgTimeBlue = 60;
+  }
+  if (who == _YELLOW) {
+    msgYellow = msg;
+    msgTimeYellow = 60;
+  }
+}
+
 void act(char action, int who) {
+  int modifier = 0;
+  float releaseModifier = 1;
+  if (action == 'c') {
+    modifier = GetRandomValue(0, MOD_LAST - 1);
+    if (modifier == RELEASE_SIMPLE) {
+      action = 'r';
+      showMsg("release", who);
+    } else if (modifier == RELEASE_DIVIDE_2) {
+      action = 'r';
+      releaseModifier = 0.5;
+      showMsg("divided by 2 and release", who);
+    } else if (modifier == RELEASE_DIVIDE_4) {
+      action = 'r';
+      releaseModifier = 0.25;
+      showMsg("divided by 4 and release", who);
+    } else if (modifier == RESET_BALLS) {
+      showMsg("bullet reset", who);
+      if (who == _GREEN) {
+        greenBulletsSize = 1;
+
+        // scary
+        memset(greenBullets, 0, sizeof(greenBullets));
+        greenBullets[0] = (Bullet){
+            GetRandomValue((startX / 2) - (VISUALSIZE / 2),
+                           (startX / 2) - (VISUALSIZE / 2) + VISUALSIZE),
+            GetRandomValue((SCREENY / 4) - (VISUALSIZE / 2),
+                           (SCREENY / 4) - (VISUALSIZE / 2) + VISUALSIZE -
+                               BULLETSIZE),
+            GetRandomValue(-5, 5),
+            GetRandomValue(-5, 5),
+            _GREEN,
+            0,
+            0,
+            {}};
+      }
+      if (who == _RED) {
+        redBulletsSize = 1;
+
+        // scary
+        memset(redBullets, 0, sizeof(redBullets));
+        redBullets[0] = (Bullet){
+            GetRandomValue(startX + rectSizeX + (startX / 2) - (VISUALSIZE / 2),
+                           startX + rectSizeX + (startX / 2) -
+                               (VISUALSIZE / 2) + VISUALSIZE),
+            GetRandomValue((SCREENY / 4) - (VISUALSIZE / 2),
+                           (SCREENY / 4) - (VISUALSIZE / 2) + VISUALSIZE -
+                               BULLETSIZE),
+            GetRandomValue(-5, 5),
+            GetRandomValue(-5, 5),
+            _RED,
+            0,
+            0,
+            {}};
+      }
+      if (who == _BLUE) {
+        blueBulletsSize = 1;
+
+        // scary
+        memset(blueBullets, 0, sizeof(blueBullets));
+        blueBullets[0] = (Bullet){
+            GetRandomValue(startX + rectSizeX + (startX / 2) - (VISUALSIZE / 2),
+                           startX + rectSizeX + (startX / 2) -
+                               (VISUALSIZE / 2) + VISUALSIZE),
+            GetRandomValue((SCREENY / 4) - (VISUALSIZE / 2),
+                           (SCREENY / 4) - (VISUALSIZE / 2) + VISUALSIZE -
+                               BULLETSIZE),
+            GetRandomValue(-5, 5),
+            GetRandomValue(-5, 5),
+            _BLUE,
+            0,
+            0,
+            {}};
+      }
+      if (who == _YELLOW) {
+        yellowBulletsSize = 1;
+
+        // scary
+        memset(yellowBullets, 0, sizeof(yellowBullets));
+        yellowBullets[0] = (Bullet){
+            GetRandomValue((startX / 2) - (VISUALSIZE / 2),
+                           (startX / 2) - (VISUALSIZE / 2) + VISUALSIZE),
+            GetRandomValue((SCREENY / 2) + (SCREENY / 4) - (VISUALSIZE / 2),
+                           (SCREENY / 2) + (SCREENY / 4) - (VISUALSIZE / 2) +
+                               VISUALSIZE - BULLETSIZE),
+            GetRandomValue(-5, 5),
+            GetRandomValue(-5, 5),
+            _YELLOW,
+            0,
+            0,
+            {}};
+      }
+    } else if (modifier == NOTHING) {
+      showMsg("none", who);
+    } else if (modifier == REMOVE_FIELD_BALLS) {
+      showMsg("remove on field bullets", who);
+      onFieldBulletsSize = 0;
+      memset(onFieldBullets, 0, sizeof(onFieldBullets));
+    } else if (modifier == REMOVE_QUEUE_BALLS) {
+      showMsg("remove all attacking bullets", who);
+      greenQueue = 0;
+      redQueue = 0;
+      blueQueue = 0;
+      yellowQueue = 0;
+    } else if (modifier == DIVIDE_2) {
+      showMsg("bullets divided by 2", who);
+      int old = 0;
+      if (who == _GREEN) {
+        old = greenBulletsSize;
+        greenBulletsSize /= 2;
+        for (int i = 0; i < greenBulletsSize - old; i++) {
+          int inst = old + i;
+          _remove(greenBullets, &inst, inst);
+        }
+      }
+      if (who == _RED) {
+        old = redBulletsSize;
+        redBulletsSize /= 2;
+        for (int i = 0; i < redBulletsSize - old; i++) {
+          int inst = old + i;
+          _remove(redBullets, &inst, inst);
+        }
+      }
+      if (who == _BLUE) {
+        old = blueBulletsSize;
+        blueBulletsSize /= 2;
+        for (int i = 0; i < blueBulletsSize - old; i++) {
+          int inst = old + i;
+          _remove(blueBullets, &inst, inst);
+        }
+      }
+      if (who == _YELLOW) {
+        old = yellowBulletsSize;
+        yellowBulletsSize /= 2;
+        for (int i = 0; i < yellowBulletsSize - old; i++) {
+          int inst = old + i;
+          _remove(yellowBullets, &inst, inst);
+        }
+      }
+    } else if (modifier == DIVIDE_4) {
+      showMsg("bullets divided by 4", who);
+      int old = 0;
+      if (who == _GREEN) {
+        old = greenBulletsSize;
+        greenBulletsSize /= 4;
+        for (int i = 0; i < greenBulletsSize - old; i++) {
+          int inst = old + i;
+          _remove(greenBullets, &inst, inst);
+        }
+      }
+      if (who == _RED) {
+        old = redBulletsSize;
+        redBulletsSize /= 4;
+        for (int i = 0; i < redBulletsSize - old; i++) {
+          int inst = old + i;
+          _remove(redBullets, &inst, inst);
+        }
+      }
+      if (who == _BLUE) {
+        old = blueBulletsSize;
+        blueBulletsSize /= 4;
+        for (int i = 0; i < blueBulletsSize - old; i++) {
+          int inst = old + i;
+          _remove(blueBullets, &inst, inst);
+        }
+      }
+      if (who == _YELLOW) {
+        old = yellowBulletsSize;
+        yellowBulletsSize /= 4;
+        for (int i = 0; i < yellowBulletsSize - old; i++) {
+          int inst = old + i;
+          _remove(yellowBullets, &inst, inst);
+        }
+      }
+    } else if (modifier == RELEASE_MULTIPLIED_2) {
+      showMsg("release multiplied", who);
+      action = 'r';
+      releaseModifier = 2;
+    } else {
+      if (modifier == MOD_LAST) {
+        showMsg("last", who);
+      } else {
+        showMsg("???", who);
+      }
+    }
+  }
+
   if (who == _GREEN) {
     // who = _RED;
     if (action == 'm' && greenBulletsSize < 1024) {
@@ -355,7 +585,9 @@ void act(char action, int who) {
       }
       // resize greenBullets array
     } else if (action == 'r') {
-      greenQueue += greenBulletsSize;
+      if (greenBulletsSize == 0)
+        greenBulletsSize = 1;
+      greenQueue += greenBulletsSize * releaseModifier;
       greenBulletsSize = 1;
 
       // scary
@@ -406,7 +638,9 @@ void act(char action, int who) {
         }
       }
     } else if (action == 'r') {
-      redQueue += redBulletsSize;
+      if (redBulletsSize == 0)
+        redBulletsSize = 1;
+      redQueue += redBulletsSize * releaseModifier;
       redBulletsSize = 1;
 
       // scary
@@ -420,7 +654,7 @@ void act(char action, int who) {
                              BULLETSIZE),
           GetRandomValue(-5, 5),
           GetRandomValue(-5, 5),
-          _GREEN,
+          _RED,
           0,
           0,
           {}};
@@ -459,7 +693,9 @@ void act(char action, int who) {
         }
       }
     } else if (action == 'r') {
-      blueQueue += blueBulletsSize;
+      if (blueBulletsSize == 0)
+        blueBulletsSize = 1;
+      blueQueue += blueBulletsSize * releaseModifier;
       blueBulletsSize = 1;
 
       // scary
@@ -511,7 +747,9 @@ void act(char action, int who) {
         }
       }
     } else if (action == 'r') {
-      yellowQueue += yellowBulletsSize;
+      if (yellowBulletsSize == 0)
+        yellowBulletsSize = 1;
+      yellowQueue += yellowBulletsSize * releaseModifier;
       yellowBulletsSize = 1;
 
       // scary
@@ -787,15 +1025,17 @@ void processFrame() {
     // TODO: figure out why these spawn misplaced
     if (greenQueue > 0 && !greenGameOver) {
       launchBullet(
-          (int[]){startX + (SIZE / 2) - BULLETSIZE, startY + (SIZE / 2) - BULLETSIZE},
+          (int[]){startX + (SIZE / 2) - BULLETSIZE,
+                  startY + (SIZE / 2) - BULLETSIZE},
           (float[]){cos(DEG2RAD * greenAngle), sin(DEG2RAD * greenAngle)},
           _GREEN);
       greenQueue -= 1;
     }
     if (redQueue > 0 && !redGameOver) {
-      launchBullet(
-          (int[]){startX + rectSizeX - (SIZE / 2) - BULLETSIZE, startY + (SIZE / 2) - BULLETSIZE},
-          (float[]){cos(DEG2RAD * redAngle), sin(DEG2RAD * redAngle)}, _RED);
+      launchBullet((int[]){startX + rectSizeX - (SIZE / 2) - BULLETSIZE,
+                           startY + (SIZE / 2) - BULLETSIZE},
+                   (float[]){cos(DEG2RAD * redAngle), sin(DEG2RAD * redAngle)},
+                   _RED);
       redQueue -= 1;
     }
     if (blueQueue > 0 && !blueGameOver) {
@@ -807,7 +1047,8 @@ void processFrame() {
     }
     if (yellowQueue > 0 && !yellowGameOver) {
       launchBullet(
-          (int[]){startX + (SIZE / 2) - BULLETSIZE, startY + rectSizeY - (SIZE / 2) - BULLETSIZE},
+          (int[]){startX + (SIZE / 2) - BULLETSIZE,
+                  startY + rectSizeY - (SIZE / 2) - BULLETSIZE},
           (float[]){cos(DEG2RAD * yellowAngle), sin(DEG2RAD * yellowAngle)},
           _YELLOW);
       yellowQueue -= 1;
@@ -924,6 +1165,9 @@ void processFrame() {
                                  startY + (SIZE / 2), // NOLINT
                                  SIZE * 2, 20},       // NOLINT
                      (Vector2){10, 10}, greenAngle, brighten(GREEN, 0.4));
+    DrawTextPro(GetFontDefault(), TextFormat("%d", greenQueue),
+                (Vector2){startX + (SIZE / 2), startY + (SIZE / 2)}, // NOLINT
+                (Vector2){10, 10}, greenAngle, 20, 1, DARKGREEN);
     greenAngle = sin(GetTime()) * 45 + 45;
     DrawText(TextFormat(STOREDSTRING, greenBulletsSize), 10, 10, 24,
              brighten(GREEN, 0.2));
@@ -952,6 +1196,10 @@ void processFrame() {
     DrawRectanglePro((Rectangle){startX + rectSizeX - (SIZE / 2),    // NOLINT
                                  startY + (SIZE / 2), SIZE * 2, 20}, // NOLINT
                      (Vector2){10, 10}, redAngle, brighten(RED, 0.4));
+    DrawTextPro(GetFontDefault(), TextFormat("%d", redQueue),
+                (Vector2){startX + rectSizeX - (SIZE / 2), // NOLINT
+                          startY + (SIZE / 2)}, // NOLINT
+                (Vector2){10, 10}, redAngle, 20, 1, RED);
     redAngle = sin(GetTime()) * 45 + 135;
     DrawText(TextFormat(STOREDSTRING, redBulletsSize), startX + rectSizeX + 10,
              10, 24, brighten(RED, 0.5));
@@ -982,6 +1230,10 @@ void processFrame() {
                                  SIZE * 2,                        // NOLINT
                                  20},                             // NOLINT
                      (Vector2){10, 10}, blueAngle, brighten(BLUE, 0.4));
+    DrawTextPro(GetFontDefault(), TextFormat("%d", blueQueue),
+                (Vector2){startX + rectSizeX - (SIZE / 2), // NOLINT
+                          startY + rectSizeY - (SIZE / 2)}, // NOLINT
+                (Vector2){10, 10}, blueAngle, 20, 1, BLUE);
     blueAngle = sin(GetTime()) * 45 - 135;
     DrawText(TextFormat(STOREDSTRING, blueBulletsSize), startX + rectSizeX + 10,
              SCREENY - 34, 24, brighten(BLUE, 0.2));
@@ -1013,6 +1265,10 @@ void processFrame() {
                                  SIZE * 2,                        // NOLINT
                                  20},                             // NOLINT
                      (Vector2){10, 10}, yellowAngle, brighten(YELLOW, 0.8));
+    DrawTextPro(GetFontDefault(), TextFormat("%d", yellowQueue),
+                (Vector2){startX + (SIZE / 2), // NOLINT
+                          startY + rectSizeY - (SIZE / 2)}, // NOLINT
+                (Vector2){10, 10}, yellowAngle, 20, 1, YELLOW);
     yellowAngle = sin(GetTime()) * 45 - 45;
     DrawText(TextFormat(STOREDSTRING, yellowBulletsSize), 10, SCREENY - 34, 24,
              WHITE);
@@ -1039,6 +1295,30 @@ void processFrame() {
   }
 
   buttons();
+
+  if (msgTimeGreen > 0) {
+    msgTimeGreen -= 1;
+    GuiMessageBox((Rectangle){100, 100, 440, 220}, CUBESTRING, msgGreen, "ok");
+  }
+  if (msgTimeRed > 0) {
+    msgTimeRed -= 1;
+    GuiMessageBox(
+        (Rectangle){startX + rectSizeX + 100, 100, 440, 220}, // NOLINT
+        CUBESTRING, msgRed, "ok");
+  }
+  if (msgTimeBlue > 0) {
+    msgTimeBlue -= 1;
+    GuiMessageBox((Rectangle){startX + rectSizeX + 100, // NOLINT
+                              startY + (rectSizeY / 2) + 100, 440, // NOLINT
+                              220}, // NOLINT
+                  CUBESTRING, msgBlue, "ok");
+  }
+  if (msgTimeYellow > 0) {
+    msgTimeYellow -= 1;
+    GuiMessageBox(
+        (Rectangle){100, startY + (rectSizeY / 2) + 100, 440, 220}, // NOLINT
+        CUBESTRING, msgYellow, "ok");
+  }
 
   EndDrawing();
 }
