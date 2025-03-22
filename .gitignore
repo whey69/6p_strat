@@ -26,4 +26,6 @@ CMakeUserPresets.json
 
 # c
 raygui.h
+rl/*
+rl
 .clang-format
