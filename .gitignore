@@ -31,3 +31,4 @@ rl
 .clang-format
 win_debug
 win_debug/*
+win_debug*
