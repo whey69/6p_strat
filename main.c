@@ -167,6 +167,8 @@ int blueBulletsSize = 1;
 void launchBullet(int pos[2], float vel[2], int team) {
   if (onFieldBulletsSize < 4097) {
     Rectangle rect = {pos[0], pos[1], BULLETSIZE, BULLETSIZE};
+    // printf("%f %f\n", vel[0], vel[1]);
+    // printf("%d %d\n", pos[0], pos[1]);
     // if (vel[0] == 0) {
     //   vel[0] = 5;
     // }
@@ -785,27 +787,27 @@ void processFrame() {
     // TODO: figure out why these spawn misplaced
     if (greenQueue > 0 && !greenGameOver) {
       launchBullet(
-          (int[]){startX + (SIZE / 2), startY + (SIZE / 2)},
+          (int[]){startX + (SIZE / 2) - BULLETSIZE, startY + (SIZE / 2) - BULLETSIZE},
           (float[]){cos(DEG2RAD * greenAngle), sin(DEG2RAD * greenAngle)},
           _GREEN);
       greenQueue -= 1;
     }
     if (redQueue > 0 && !redGameOver) {
       launchBullet(
-          (int[]){startX + rectSizeX - (SIZE / 2), startY + (SIZE / 2)},
+          (int[]){startX + rectSizeX - (SIZE / 2) - BULLETSIZE, startY + (SIZE / 2) - BULLETSIZE},
           (float[]){cos(DEG2RAD * redAngle), sin(DEG2RAD * redAngle)}, _RED);
       redQueue -= 1;
     }
     if (blueQueue > 0 && !blueGameOver) {
       launchBullet(
-          (int[]){startX + rectSizeX - (SIZE / 2),
-                  startY + rectSizeY - (SIZE / 2)},
+          (int[]){startX + rectSizeX - (SIZE / 2) - BULLETSIZE,
+                  startY + rectSizeY - (SIZE / 2) - BULLETSIZE},
           (float[]){cos(DEG2RAD * blueAngle), sin(DEG2RAD * blueAngle)}, _BLUE);
       blueQueue -= 1;
     }
     if (yellowQueue > 0 && !yellowGameOver) {
       launchBullet(
-          (int[]){startX + (SIZE / 2), startY + rectSizeY - (SIZE / 2)},
+          (int[]){startX + (SIZE / 2) - BULLETSIZE, startY + rectSizeY - (SIZE / 2) - BULLETSIZE},
           (float[]){cos(DEG2RAD * yellowAngle), sin(DEG2RAD * yellowAngle)},
           _YELLOW);
       yellowQueue -= 1;
@@ -884,6 +886,7 @@ void processFrame() {
             _remove(onFieldBullets, &onFieldBulletsSize, i);
           } else if (el->health == 1 && onFieldBullets[i].team == el->team) {
             el->health = 2;
+            onFieldBullets[i].bounces += 1;
           }
         }
         if (skip) {
